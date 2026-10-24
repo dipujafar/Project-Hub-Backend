@@ -2,3 +2,9 @@ enum Role {
   STUDENT
   MENTOR
 }
+
+enum ProjectStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}

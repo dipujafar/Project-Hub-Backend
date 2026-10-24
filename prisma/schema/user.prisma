@@ -4,9 +4,10 @@ model User {
   email        String        @unique
   password     String
   role         Role          @default(STUDENT)
+  verification Verification?
+  projects     Project[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
-  verification Verification?
 
   @@map("users")
 }

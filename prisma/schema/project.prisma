@@ -1,0 +1,19 @@
+model Project {
+  id           String        @id @default(uuid())
+  projectName  String
+  repoUrl      String        @unique 
+  liveLink     String
+  description  String
+  status       ProjectStatus @default(PENDING)
+  reviewedAt   DateTime?
+  reviewedById String?
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([status, createdAt])
+  @@index([userId])
+
+  @@map("projects")
+}

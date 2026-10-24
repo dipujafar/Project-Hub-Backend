@@ -1,8 +1,7 @@
 import bcrypt from 'bcrypt';
-
-const SALT_ROUNDS = 12;
+import config from '../config';
 
 const HashPassword = async (plainPassword: string): Promise<string> =>
-  await bcrypt.hash(plainPassword, SALT_ROUNDS);
+  await bcrypt.hash(plainPassword, config.bcrypt_salt_rounds as string);
 
 export default HashPassword;
