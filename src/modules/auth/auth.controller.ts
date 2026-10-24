@@ -4,23 +4,26 @@ import { authServices } from './auth.service';
 import sendResponse from '../../utils/sendResponse';
 import httpStatus from 'http-status';
 import config from '../../config';
+import AppError from '../../error/AppError';
+
+const authCookieOptions = (maxAge: number) => ({
+  httpOnly: true,
+  secure: config.NODE_ENV === 'production',
+  sameSite: config.NODE_ENV === 'production' ? ('none' as const) : ('lax' as const),
+  maxAge,
+});
 
 // login
 const login = catchAsync(async (req: Request, res: Response) => {
   const result = await authServices.login(req.body, req);
-  const { refreshToken } = result;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const cookieOptions: any = {
-    secure: false,
-    httpOnly: true,
-    maxAge: 31536000000,
-  };
+  const { accessToken, refreshToken } = result;
 
-  if (config.NODE_ENV === 'production') {
-    cookieOptions.sameSite = 'none';
-  }
-  res.cookie('refreshToken', refreshToken, cookieOptions);
-  res.cookie('token', refreshToken, cookieOptions);
+  res.cookie('accessToken', accessToken, authCookieOptions(7 * 24 * 60 * 60 * 1000));
+  res.cookie(
+    'refreshToken',
+    refreshToken,
+    authCookieOptions(30 * 24 * 60 * 60 * 1000),
+  );
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -68,8 +71,16 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
 
 // refresh token
 const refreshToken = catchAsync(async (req: Request, res: Response) => {
-  const { refreshToken } = req.cookies;
-  const result = await authServices.refreshToken(refreshToken);
+  const token = req.cookies?.refreshToken;
+  if (!token) {
+    throw new AppError(httpStatus.UNAUTHORIZED, 'Refresh token is required');
+  }
+  const result = await authServices.refreshToken(token);
+  res.cookie(
+    'accessToken',
+    result.accessToken,
+    authCookieOptions(7 * 24 * 60 * 60 * 1000),
+  );
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
