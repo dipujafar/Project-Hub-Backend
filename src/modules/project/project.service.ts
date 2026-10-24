@@ -13,11 +13,12 @@ interface CreatePayload {
 
 interface GetAllOptions {
   status?: ProjectStatus;
+  searchTerm?: string;
   page: number;
   limit: number;
 }
 
-const create = async (userId: string, payload: CreatePayload) => {
+const createProject = async (userId: string, payload: CreatePayload) => {
   try {
     return await prisma.project.create({
       data: { ...payload, userId },
@@ -36,14 +37,35 @@ const create = async (userId: string, payload: CreatePayload) => {
   }
 };
 
-const getMine = (userId: string) =>
+const getMyProjects = (userId: string) =>
   prisma.project.findMany({
     where: { userId },
     orderBy: { createdAt: 'desc' },
   });
 
-const getAll = async ({ status, page, limit }: GetAllOptions) => {
-  const where: Prisma.ProjectWhereInput = status ? { status } : {};
+const getAllPorjects = async ({ status, searchTerm, page, limit }: GetAllOptions) => {
+  const where: Prisma.ProjectWhereInput = {
+    ...(status ? { status } : {}),
+    ...(searchTerm
+      ? {
+          OR: [
+            { projectName: { contains: searchTerm, mode: 'insensitive' } },
+            { repoUrl: { contains: searchTerm, mode: 'insensitive' } },
+            { liveLink: { contains: searchTerm, mode: 'insensitive' } },
+            {
+              user: {
+                is: {
+                  OR: [
+                    { name: { contains: searchTerm, mode: 'insensitive' } },
+                    { email: { contains: searchTerm, mode: 'insensitive' } },
+                  ],
+                },
+              },
+            },
+          ],
+        }
+      : {}),
+  };
 
   const [projects, total] = await prisma.$transaction([
     prisma.project.findMany({
@@ -71,7 +93,7 @@ const getAll = async ({ status, page, limit }: GetAllOptions) => {
   };
 };
 
-const getStats = async () => {
+const getPrjectStats = async () => {
   const groups = await prisma.project.groupBy({
     by: ['status'],
     _count: { _all: true },
@@ -115,9 +137,9 @@ const review = async (
 };
 
 export const projectService = {
-  create,
-  getMine,
-  getAll,
-  getStats,
+  createProject,
+  getMyProjects,
+  getAllPorjects,
+  getPrjectStats,
   review,
 };

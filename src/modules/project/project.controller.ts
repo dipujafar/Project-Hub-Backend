@@ -12,9 +12,9 @@ const getAuthenticatedUserId = (userId: unknown): string => {
   return userId;
 };
 
-const create = catchAsync(async (req, res) => {
+const createProject = catchAsync(async (req, res) => {
   const userId = getAuthenticatedUserId(req.user?.userId);
-  const result = await projectService.create(userId, req.body);
+  const result = await projectService.createProject(userId, req.body);
 
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
@@ -24,9 +24,9 @@ const create = catchAsync(async (req, res) => {
   });
 });
 
-const getMine = catchAsync(async (req, res) => {
+const getMyProjects = catchAsync(async (req, res) => {
   const userId = getAuthenticatedUserId(req.user?.userId);
-  const result = await projectService.getMine(userId);
+  const result = await projectService.getMyProjects(userId);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -36,8 +36,10 @@ const getMine = catchAsync(async (req, res) => {
   });
 });
 
-const getAll = catchAsync(async (req, res) => {
+const getAllProjects = catchAsync(async (req, res) => {
   const status = req.query.status as ProjectStatus | undefined;
+  const searchTerm =
+    typeof req.query.searchTerm === 'string' ? req.query.searchTerm.trim() : undefined;
   const page = Number(req.query.page ?? 1);
   const limit = Number(req.query.limit ?? 10);
 
@@ -45,7 +47,7 @@ const getAll = catchAsync(async (req, res) => {
     throw new AppError(httpStatus.BAD_REQUEST, 'Limit cannot exceed 100');
   }
 
-  const result = await projectService.getAll({ status, page, limit });
+  const result = await projectService.getAllPorjects({ status, searchTerm, page, limit });
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -62,7 +64,7 @@ const getAll = catchAsync(async (req, res) => {
 });
 
 const getStats = catchAsync(async (_req, res) => {
-  const result = await projectService.getStats();
+  const result = await projectService.getPrjectStats();
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -93,9 +95,9 @@ const review = catchAsync(async (req, res) => {
 });
 
 export const projectController = {
-  create,
-  getMine,
-  getAll,
+  createProject,
+  getMyProjects,
+  getAllProjects,
   getStats,
   review,
 };

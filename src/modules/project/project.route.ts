@@ -11,12 +11,12 @@ router.post(
   '/',
   auth(Role.STUDENT),
   validateRequest(projectValidations.createProjectZodSchema),
-  projectController.create,
+  projectController.createProject,
 );
 router.get(
   '/mine',
   auth(Role.STUDENT, Role.MENTOR),
-  projectController.getMine,
+  projectController.getMyProjects,
 );
 router.get(
   '/stats',
@@ -27,7 +27,7 @@ router.get(
   '/',
   auth(Role.MENTOR),
   validateRequest(projectValidations.getAllProjectsZodSchema),
-  projectController.getAll,
+  projectController.getAllProjects,
 );
 router.patch(
   '/:id/review',

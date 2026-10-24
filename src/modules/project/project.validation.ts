@@ -14,6 +14,7 @@ const createProjectZodSchema = z.object({
 const getAllProjectsZodSchema = z.object({
   query: z.object({
     status: z.enum(['PENDING', 'APPROVED', 'REJECTED']).optional(),
+    searchTerm: z.string().trim().optional(),
     page: z
       .string()
       .regex(/^[1-9]\d*$/)
